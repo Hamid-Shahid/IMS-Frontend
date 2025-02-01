@@ -21,12 +21,15 @@ const Sale = () => {
 
   const filteredSales = sales.filter((sale) => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+    const formattedDate = new Date(sale.createdAt).toLocaleDateString("en-GB"); // Formats as dd/mm/yyyy
+  
     return (
       sale?.productName.toLowerCase().includes(lowerCaseSearchTerm) ||
       sale?.customerName.toLowerCase().includes(lowerCaseSearchTerm) ||
       sale?.noOfUnitsSold.toString().includes(lowerCaseSearchTerm) ||
       sale?.totalSale.toString().includes(lowerCaseSearchTerm) ||
-      sale?.pricePerUnit.toString().includes(lowerCaseSearchTerm)
+      sale?.pricePerUnit.toString().includes(lowerCaseSearchTerm) ||
+      formattedDate.includes(lowerCaseSearchTerm) // Search by date
     );
   });
 
