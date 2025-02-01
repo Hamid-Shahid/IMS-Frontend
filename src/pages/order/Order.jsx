@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { deleteOrder, getAllOrders, recieveOrder } from "../../services/order";
+import { deleteOrder, getOrdersByPagination, recieveOrder } from "../../services/order";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../components/Loader";
 import Modal from "../../components/Modal";
@@ -8,13 +8,19 @@ import NotFound from "../../components/NotFound";
 
 const Order = () => {
   const dispatch = useDispatch();
-  const { orders, loading } = useSelector((state) => state.order);
+  const { orders, loading, currentPage, totalPages, totalOrders } = useSelector((state) => state.order);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [deletedId, setDeletedId] = useState(null);
   const [receivingId, setReceivingId] = useState(null);
+  const [page, setPage] = useState(1);
+  const limit = 10; // Define how many orders per page
+
+  useEffect(() => {
+    dispatch(getOrdersByPagination({ page, limit }));
+  }, [dispatch, page]);
 
   const filteredOrders = orders.filter((order) => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
@@ -48,10 +54,6 @@ const Order = () => {
     setShowReceiveModal(false);
   }
 
-  useEffect(() => {
-    dispatch(getAllOrders());
-  }, [dispatch]);
-
   return (
     <section className="p-3 sm:p-4 rounded-lg w-full h-auto mt-[10px] sm:px-8">
       {loading && <Loader />}
@@ -83,75 +85,38 @@ const Order = () => {
         <table className="min-w-full text-left table-auto border-collapse text-[0.83rem] whitespace-nowrap">
           <thead>
             <tr className="bg-gray-700 text-gray-100 text-primary">
-              {[
-                "SR#",
-                "Vendor",
-                "Material",
-                "Quantity",
-                "Cost Per Unit",
-                "Total Cost",
-                "Status",
-                "Actions",
-              ].map((header) => (
-                <th
-                  key={header}
-                  className="text-[0.92rem] py-3 px-4 border-b border-secondary"
-                >
-                  {header}
-                </th>
-              ))}
+              {["SR#", "Vendor", "Material", "Quantity", "Cost Per Unit", "Total Cost", "Status", "Actions"].map(
+                (header) => (
+                  <th key={header} className="text-[0.92rem] py-3 px-4 border-b border-secondary">
+                    {header}
+                  </th>
+                )
+              )}
             </tr>
           </thead>
 
           <tbody>
             {filteredOrders.length > 0 &&
               filteredOrders.map((order, index) => (
-                <tr
-                  key={order._id}
-                  className="odd:bg-gray-200 hover:bg-gray-300"
-                >
-                  <td className="py-3 px-4 border-b border-secondary">
-                    {index + 1}
-                  </td>
-                  <td className="py-3 px-4 border-b border-secondary">
-                    {order.vendor}
-                  </td>
-                  <td className="py-3 pl-6 border-b border-secondary">
-                    {order.material}
-                  </td>
-                  <td className="py-3 pl-6 border-b border-secondary">
-                    {order.quantity}
-                  </td>
-                  <td className="py-3 pl-10 border-b border-secondary">
-                    {order.costPerUnit}
-                  </td>
-                  <td className="py-3 px-4 border-b border-secondary">
-                    {order.totalCost}
-                  </td>
-                  <td className="py-3 px-4 border-b border-secondary">
-                    {order.status}
-                  </td>
+                <tr key={order._id} className="odd:bg-gray-200 hover:bg-gray-300">
+                  <td className="py-3 px-4 border-b border-secondary">{(page - 1) * limit + index + 1}</td>
+                  <td className="py-3 px-4 border-b border-secondary">{order.vendor}</td>
+                  <td className="py-3 pl-6 border-b border-secondary">{order.material}</td>
+                  <td className="py-3 pl-6 border-b border-secondary">{order.quantity}</td>
+                  <td className="py-3 pl-10 border-b border-secondary">{order.costPerUnit}</td>
+                  <td className="py-3 px-4 border-b border-secondary">{order.totalCost}</td>
+                  <td className="py-3 px-4 border-b border-secondary">{order.status}</td>
                   <td className="py-3 pl-8 border-b border-secondary flex items-center space-x-2">
-                    <button
-                      onClick={() => handleReceiveOrder(order._id)}
-                      className="text-blue-500 hover:text-blue-400"
-                    >
+                    <button onClick={() => handleReceiveOrder(order._id)} className="text-blue-500 hover:text-blue-400">
                       <i className="fas fa-box"></i>
                     </button>
                     <Link to={`/edit-order/${order._id}`}>
-                      <button
-                        className="text-green-500 hover:text-green-400"
-                        title="Edit"
-                      >
+                      <button className="text-green-500 hover:text-green-400" title="Edit">
                         <i className="fa-solid fa-edit"></i>
                       </button>
                     </Link>
 
-                    <button
-                      onClick={() => handleDelete(order._id)}
-                      className="text-red-500 hover:text-red-400"
-                      title="Delete"
-                    >
+                    <button onClick={() => handleDelete(order._id)} className="text-red-500 hover:text-red-400" title="Delete">
                       <i className="fa-solid fa-trash"></i>
                     </button>
                   </td>
@@ -160,25 +125,30 @@ const Order = () => {
           </tbody>
         </table>
 
-        {!loading && filteredOrders.length === 0 && (
-          <NotFound message={"order"} />
-        )}
+        {!loading && filteredOrders.length === 0 && <NotFound message={"order"} />}
       </div>
 
-      {showDeleteModal && (
-        <Modal
-          onClose={() => setShowDeleteModal(false)}
-          isConfirm={confirmDelete}
-        />
-      )}
+      {/* Pagination Controls */}
+      <div className="flex justify-center gap-2 mt-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-[#213555] hover:bg-[#3E5879] text-gray-100 rounded-md"
+        >
+          Prev
+        </button>
+        <span className="py-2">{`Page ${currentPage} of ${totalPages}`}</span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-[#213555] hover:bg-[#3E5879] text-gray-100 rounded-md"
+        >
+          Next
+        </button>
+      </div>
 
-      {showReceiveModal && (
-        <Modal
-          onClose={() => setShowReceiveModal(false)}
-          isConfirm={confirmReceive}
-          type="recieve"
-        />
-      )}
+      {showDeleteModal && <Modal onClose={() => setShowDeleteModal(false)} isConfirm={confirmDelete} />}
+      {showReceiveModal && <Modal onClose={() => setShowReceiveModal(false)} isConfirm={confirmReceive} type="receive" />}
     </section>
   );
 };

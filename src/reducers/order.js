@@ -4,6 +4,7 @@ import {
   deleteOrder,
   getAllOrders,
   getOrderById,
+  getOrdersByPagination,
   recieveOrder,
   updateOrder,
 } from "../services/order";
@@ -13,6 +14,9 @@ const initialState = {
   order: null,
   loading: false,
   error: null,
+  currentPage: 1,
+  totalPages: 1,
+  totalOrders: 0,
 };
 
 const orderSlice = createSlice({
@@ -31,6 +35,24 @@ const orderSlice = createSlice({
         state.orders = action.payload;
       })
       .addCase(getAllOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Handle getOrdersByPagination
+    builder
+      .addCase(getOrdersByPagination.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getOrdersByPagination.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = action.payload.orders;
+        state.currentPage = action.payload.currentPage;
+        state.totalPages = action.payload.totalPages;
+        state.totalOrders = action.payload.totalOrders;
+      })
+      .addCase(getOrdersByPagination.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -71,7 +93,7 @@ const orderSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateOrder.fulfilled, (state, action) => {
+      .addCase(updateOrder.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(updateOrder.rejected, (state, action) => {
@@ -105,10 +127,10 @@ const orderSlice = createSlice({
       .addCase(recieveOrder.fulfilled, (state, action) => {
         const newOrders = [...state.orders];
         const findIndex = newOrders.findIndex(
-          (order) => order._id == action.payload
+          (order) => order._id === action.payload
         );
         if (findIndex !== -1) {
-          newOrders[findIndex].status = "Recieved";
+          newOrders[findIndex].status = "Received";
           state.orders = newOrders;
         }
         state.loading = false;

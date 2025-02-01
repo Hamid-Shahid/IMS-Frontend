@@ -14,6 +14,26 @@ export const getAllOrders = createAsyncThunk(
   }
 );
 
+export const getOrdersByPagination = createAsyncThunk(
+  "orders/getOrdersByPagination",
+  async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.get('/orders/orders-detail/',{
+        params:{page,limit},
+      });
+      return {
+        orders: data.orders,
+        currentPage: data.currentPage,
+        totalPages: data.totalPages,
+        totalOrders: data.totalOrders,
+      };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+
 export const getOrderById = createAsyncThunk(
   "orders/getOrderById",
   async (id, { rejectWithValue }) => {
