@@ -5,6 +5,7 @@ import {
   getAllMaterials,
   getMaterialById,
   updateMaterial,
+  getMaterialsByPagination, // Added import
 } from "../services/material";
 
 const initialState = {
@@ -12,6 +13,9 @@ const initialState = {
   material: null,
   loading: false,
   error: null,
+  currentPage: 1, // For pagination
+  totalPages: 1,
+  totalMaterials: 0,
 };
 
 const materialSlice = createSlice({
@@ -30,6 +34,24 @@ const materialSlice = createSlice({
         state.materials = action.payload;
       })
       .addCase(getAllMaterials.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Handle getMaterialsByPagination
+    builder
+      .addCase(getMaterialsByPagination.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getMaterialsByPagination.fulfilled, (state, action) => {
+        state.loading = false;
+        state.materials = action.payload.materials;
+        state.currentPage = action.payload.currentPage;
+        state.totalPages = action.payload.totalPages;
+        state.totalMaterials = action.payload.totalMaterials;
+      })
+      .addCase(getMaterialsByPagination.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -70,7 +92,7 @@ const materialSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateMaterial.fulfilled, (state, action) => {
+      .addCase(updateMaterial.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(updateMaterial.rejected, (state, action) => {

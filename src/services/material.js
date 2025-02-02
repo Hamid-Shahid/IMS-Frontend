@@ -14,6 +14,25 @@ export const getAllMaterials = createAsyncThunk(
   }
 );
 
+export const getMaterialsByPagination = createAsyncThunk(
+  "materials/getMaterialsByPagination",
+  async ({ page=1, limit=10 }, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.get(`/materials/materials-detail/`,{
+        params: {page,limit}
+      });
+      console.log(data.materials)
+      return {
+        materials: data.materials,
+        currentPage: data.currentPage,
+        totalPages: data.totalPages,
+        totalMaterials: data.totalMaterials,
+      };    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const getMaterialById = createAsyncThunk(
   "materials/getMaterialById",
   async (id, { rejectWithValue }) => {
