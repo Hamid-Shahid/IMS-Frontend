@@ -5,13 +5,17 @@ import {
   getAllProductions,
   getProductionById,
   updateProduction,
+  getProductionsByPagination, // Import the new action
 } from "../services/production";
 
 const initialState = {
   productions: [],
   production: null,
   loading: false,
+  paginationLoading: false, // Separate loading state for pagination
   error: null,
+  currentPage: 1, // Track the current page
+  totalPages: 1, // Track the total number of pages
 };
 
 const productionSlice = createSlice({
@@ -31,6 +35,23 @@ const productionSlice = createSlice({
       })
       .addCase(getAllProductions.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Handle getProductionsByPagination
+    builder
+      .addCase(getProductionsByPagination.pending, (state) => {
+        state.paginationLoading = true;
+        state.error = null;
+      })
+      .addCase(getProductionsByPagination.fulfilled, (state, action) => {
+        state.paginationLoading = false;
+        state.productions = action.payload.productions; // Update productions
+        state.currentPage = action.payload.currentPage; // Update current page
+        state.totalPages = action.payload.totalPages; // Update total pages
+      })
+      .addCase(getProductionsByPagination.rejected, (state, action) => {
+        state.paginationLoading = false;
         state.error = action.payload;
       });
 
@@ -72,6 +93,12 @@ const productionSlice = createSlice({
       })
       .addCase(updateProduction.fulfilled, (state, action) => {
         state.loading = false;
+        // Optionally update the specific production in the list
+        state.productions = state.productions.map((production) =>
+          production.productionId === action.payload.productionId
+            ? action.payload
+            : production
+        );
       })
       .addCase(updateProduction.rejected, (state, action) => {
         state.loading = false;
