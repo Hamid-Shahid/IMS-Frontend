@@ -14,6 +14,21 @@ export const getAllProducts = createAsyncThunk(
   }
 );
 
+export const getProductsByPagination = createAsyncThunk(
+  "products/getProductsByPagination",
+  async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.get(`/products/product-detail`,{
+        params:{page,limit},
+      });
+      return data; // Ensure your API returns `{ products, totalPages, currentPage }`
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch products");
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const getProductById = createAsyncThunk(
   "products/getProductById",
   async (id, { rejectWithValue }) => {

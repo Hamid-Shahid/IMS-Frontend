@@ -5,13 +5,17 @@ import {
   getAllProducts,
   getProductById,
   updateProduct,
+  getProductsByPagination,
 } from "../services/product";
 
 const initialState = {
   products: [],
   product: null,
   loading: false,
+  paginationLoading: false,
   error: null,
+  currentPage: 1,
+  totalPages: 1,
 };
 
 const productSlice = createSlice({
@@ -31,6 +35,23 @@ const productSlice = createSlice({
       })
       .addCase(getAllProducts.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Handle getProductsByPagination
+    builder
+      .addCase(getProductsByPagination.pending, (state) => {
+        state.paginationLoading = true;
+        state.error = null;
+      })
+      .addCase(getProductsByPagination.fulfilled, (state, action) => {
+        state.paginationLoading = false;
+        state.products = action.payload.products;
+        state.currentPage = action.payload.currentPage;
+        state.totalPages = action.payload.totalPages;
+      })
+      .addCase(getProductsByPagination.rejected, (state, action) => {
+        state.paginationLoading = false;
         state.error = action.payload;
       });
 
@@ -70,7 +91,7 @@ const productSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateProduct.fulfilled, (state, action) => {
+      .addCase(updateProduct.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(updateProduct.rejected, (state, action) => {

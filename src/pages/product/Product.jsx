@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { deleteProduct, getAllProducts } from "../../services/product";
+import { deleteProduct, getProductsByPagination } from "../../services/product";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../components/Loader";
 import Modal from "../../components/Modal";
@@ -8,11 +8,17 @@ import NotFound from "../../components/NotFound";
 
 const Product = () => {
   const dispatch = useDispatch();
-  const { products, loading } = useSelector((state) => state.product);
+  const { products, loading, currentPage, totalPages, paginationLoading } = useSelector((state) => state.product);
 
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [deletedId, setDeletedId] = useState(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  useEffect(() => {
+    dispatch(getProductsByPagination({ page, limit }));
+  }, [dispatch, page]);
 
   const filteredProducts = products.filter((product) => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
@@ -22,8 +28,9 @@ const Product = () => {
       product?.pricePerUnit.toString().includes(lowerCaseSearchTerm) ||
       product?.rawMaterials.some((material) =>
         material?.name.toLowerCase().includes(lowerCaseSearchTerm)
-      )
+    )
     );
+
   });
 
   function handleDelete(id) {
@@ -36,13 +43,15 @@ const Product = () => {
     setShowModal(false);
   }
 
-  useEffect(() => {
-    dispatch(getAllProducts());
-  }, [dispatch]);
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
 
   return (
     <section className="p-3 sm:p-4 rounded-lg w-full h-auto mt-[10px] sm:px-8">
-      {/* {loading && <Loader />} */}
+      {/* {paginationLoading && <Loader />} */}
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 justify-between px-2 py-4">
         <div className="flex justify-between sm:justify-center items-center gap-4 text-xl sm:text-[1.4rem] font-semibold">
@@ -97,7 +106,7 @@ const Product = () => {
                   className="odd:bg-gray-200 hover:bg-gray-300"
                 >
                   <td className="py-3 px-4 border-b border-secondary">
-                    {index + 1}
+                    {(currentPage - 1) * limit + index + 1}
                   </td>
                   <td className="py-3 px-4 border-b border-secondary">
                     {product.name}
@@ -137,9 +146,28 @@ const Product = () => {
           </tbody>
         </table>
 
-        {!loading && filteredProducts.length === 0 && (
+        {!paginationLoading && filteredProducts.length === 0 && (
           <NotFound message={"product"} />
         )}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center gap-2 mt-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-[#213555] hover:bg-[#3E5879] text-gray-100 rounded-md"
+        >
+          Prev
+        </button>
+        <span className="py-2">{`Page ${currentPage} of ${totalPages}`}</span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-[#213555] hover:bg-[#3E5879] text-gray-100 rounded-md"
+        >
+          Next
+        </button>
       </div>
 
       {showModal && (
@@ -148,5 +176,4 @@ const Product = () => {
     </section>
   );
 };
-
 export default Product;
