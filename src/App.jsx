@@ -55,11 +55,9 @@ const AuthRouter = () => {
 };
 
 const AppRouter = () => {
-  const location = useLocation();
-  const showHeader = location.pathname === "/";
   return (
     <>
-      {showHeader ? <Header /> : <Navbar />}
+      <Navbar />
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -95,7 +93,7 @@ const AppRouter = () => {
           <Route path="/edit-sale/:id" element={<UpdateSale />} />
 
           {/* Error Handler */}
-          <Route path="*" element={<Navigate to={"/"} />} />
+          <Route path="*" element={<Navigate to={"/"} />}></Route>
         </Routes>
       </Suspense>
     </>
