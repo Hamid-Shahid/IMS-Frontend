@@ -21,7 +21,7 @@ const Header = () => {
 
       {/* Left Section - Logo */}
       <div className="flex">
-        <h6 className="text-2xl font-[Dancing Script] text-[#7FA1C3]">
+        <h6 className="text-2xl font-[Dancing Script] text-[#ffff]">
           ERPGo SaaS
         </h6>
       </div>

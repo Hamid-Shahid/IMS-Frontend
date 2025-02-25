@@ -3,6 +3,8 @@ import {
   register as registerService,
   signIn as signInService,
   logout,
+  getUsersByPagination,
+  deleteUser,
 } from "../services/authentication";
 
 const initialState = {
@@ -18,6 +20,13 @@ const initialState = {
   signOut: {
     loading: false,
     error: null,
+  },
+  users: {
+    list: [],
+    loading: false,
+    error: null,
+    totalPages: 0,
+    currentPage: 1,
   },
 };
 
@@ -69,6 +78,40 @@ const authenticationSlice = createSlice({
       .addCase(logout.rejected, (state, action) => {
         state.signOut.loading = false;
         state.signOut.error = action.payload;
+      });
+
+    // Fetch Users with Pagination
+    builder
+      .addCase(getUsersByPagination.pending, (state) => {
+        state.users.loading = true;
+        state.users.error = null;
+      })
+      .addCase(getUsersByPagination.fulfilled, (state, action) => {
+        state.users.loading = false;
+        state.users.list = action.payload.users;
+        state.users.totalPages = action.payload.totalPages;
+        state.users.currentPage = action.payload.currentPage;
+      })
+      .addCase(getUsersByPagination.rejected, (state, action) => {
+        state.users.loading = false;
+        state.users.error = action.payload;
+      });
+
+    // Delete User
+    builder
+      .addCase(deleteUser.pending, (state) => {
+        state.users.loading = true;
+        state.users.error = null;
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.users.loading = false;
+        state.users.list = state.users.list.filter(
+          (user) => user.id !== action.meta.arg
+        );
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.users.loading = false;
+        state.users.error = action.payload;
       });
   },
 });

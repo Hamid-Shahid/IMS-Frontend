@@ -121,12 +121,12 @@ const SignIn = () => {
           )}
         </button>
 
-        <p className="text-sm text-center mt-4">
+        {/* <p className="text-sm text-center mt-4">
           Don't have an account ?{" "}
           <Link to={"/register"} className="text-sm hover:text-[#213555] font-medium hover:underline">
             Register
           </Link>
-        </p>
+        </p> */}
       </form>
     </div>
   );

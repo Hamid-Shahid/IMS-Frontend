@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 const SignIn = lazy(() => import("./pages/authentication/SignIn"));
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Register = lazy(() => import("./pages/authentication/Register"));
+const User  = lazy(() => import("./pages/user/Users"));
 const Material = lazy(() => import("./pages/material/Material"));
 const CreateMaterial = lazy(() => import("./pages/material/CreateMaterial"));
 const UpdateMaterial = lazy(() => import("./pages/material/UpdateMaterial"));
@@ -46,7 +47,6 @@ const AuthRouter = () => {
   return (
     <Suspense fallback={<Loader />}>
       <Routes>
-        <Route path="/register" element={<Register />} />
         <Route path="/" element={<SignIn />} />
         <Route path="*" element={<Navigate to={"/"} />} />
       </Routes>
@@ -60,7 +60,11 @@ const AppRouter = () => {
       <Navbar />
       <Suspense fallback={<Loader />}>
         <Routes>
+          <Route path="/register" element={<Register />} />
           <Route path="/" element={<Dashboard />} />
+
+          {/* User Routes */}
+          <Route path="/user" element={<User />} />
 
           {/* Material Routes */}
           <Route path="/material" element={<Material />} />
